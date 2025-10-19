@@ -1,4 +1,4 @@
-name: Build ActivityPub Multi-Arch Images
+name: Build Alpine Networking Tester Multi-Arch Images
 
 on:
   schedule:
