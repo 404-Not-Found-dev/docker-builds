@@ -33,7 +33,7 @@ jobs:
         images: ghcr.io/404-not-found-dev/alpine-networking-tester
         tags: |
           type=raw,value=latest
-          type=raw,value={{date 'YYYYMMDD' tz='Europe/Berlin'}}
+          type=raw,value={{date 'YYYY-MM-DD' tz='Europe/Berlin'}}
 
 
     - name: Set up QEMU
