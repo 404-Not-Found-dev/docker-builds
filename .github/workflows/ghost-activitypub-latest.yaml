@@ -38,35 +38,46 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Meta ActivityPub (Tags & Labels with date)
+      id: meta-activitypub
+      uses: docker/metadata-action@v5
+      with:
+        images: ghcr.io/404-not-found-dev/ghost-activitypub
+        tags: |
+          type=raw,value=latest
+          type=raw,value={{date 'YYYYMMDD' tz='Europe/Berlin'}}
+
+    - name: Meta ActivityPub Migrations (Tags & Labels with date)
+      id: meta-activitypub-migrations
+      uses: docker/metadata-action@v5
+      with:
+        images: ghcr.io/404-not-found-dev/ghost-activitypub-migrations
+        tags: |
+          type=raw,value=latest
+          type=raw,value={{date 'YYYYMMDD' tz='Europe/Berlin'}}
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
     - name: Build and push Ghost ActivityPub Multi-Arch Image
-      run: |
-        cd ActivityPub
-
-        docker buildx create --use --name mybuilder || true
-
-        DATE=$(date +'%Y-%m-%d')
-
-        docker buildx build \
-          --platform linux/amd64,linux/arm64 \
-          --push \
-          --tag ghcr.io/404-not-found-dev/ghost-activitypub:latest \
-          --tag ghcr.io/404-not-found-dev/ghost-activitypub:${DATE} \
-          .
+      uses: docker/build-push-action@v6
+      with:
+        context: ./ActivityPub
+        push: true
+        tags: ${{ steps.meta-activitypub.outputs.tags }}
+        labels: ${{ steps.meta-activitypub.outputs.labels }}
 
     - name: Replace Dockerfile for migrations
       run: |
-        cd ActivityPub/migrate
-        curl -L -o Dockerfile https://raw.githubusercontent.com/404-Not-Found-dev/Ghost-ActivityPub-MultiArch/main/migrate/Dockerfile
+        curl -L -o ActivityPub/migrate/Dockerfile https://raw.githubusercontent.com/404-Not-Found-dev/Ghost-ActivityPub-MultiArch/main/migrate/Dockerfile
 
     - name: Build and push Ghost ActivityPub Migrations Multi-Arch Image
-      run: |
-        cd ActivityPub/migrate
-
-        DATE=$(date +'%Y-%m-%d')
-
-        docker buildx build \
-          --platform linux/amd64,linux/arm64 \
-          --push \
-          --tag ghcr.io/404-not-found-dev/ghost-activitypub-migrations:latest \
-          --tag ghcr.io/404-not-found-dev/ghost-activitypub-migrations:${DATE} \
-          .
+      uses: docker/build-push-action@v6
+      with:
+        context: ./ActivityPub/migrate
+        push: true
+        tags: ${{ steps.meta-activitypub-migrations.outputs.tags }}
+        labels: ${{ steps.meta-activitypub-migrations.outputs.labels }}
